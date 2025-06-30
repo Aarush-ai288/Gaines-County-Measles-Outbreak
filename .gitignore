@@ -70,122 +70,152 @@ for day,infected in zip(t,I):
         break
 print(f"Total infected individuals: {int(infected1)}")
 
-
-
-
-
-
 ################## Infected vs Vaccination Rate ##########################
 
-# Plot 1: SIRV Model Graph
-plt.figure(figsize=(10, 7))
-plt.plot(indices, S, label = 'Susceptible')
-plt.plot(indices, I, label='Infected')
-plt.plot(indices, R, label='Recovered')
-plt.plot(indices, V, label='Vaccinated')
-plt.xlabel('Months')
-plt.ylabel('Number of individuals')
-plt.title('SIRV Model for Gaines County, Texas')
-plt.legend()
+
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+
+def sirv_model(y, t, beta, gamma, nu):
+    S, I, R, V = y
+    N = S + I + R + V
+    dSdt = -beta * S * I / N - nu * S
+    dIdt = beta * S * I / N - gamma * I
+    dRdt = gamma * I
+    dVdt = nu * S
+    return [dSdt, dIdt, dRdt, dVdt]
+
+# Initial conditions for Gaines County
+N = 23289
+
+I0 = 6
+R0 = 0
+V0 = int(0.82*N)
+S0 = N - I0 - R0 - V0
+
+# Parameters per month
+beta = 1.0 # Infection rate
+gamma = 0.1266 # Recovery rate
+
+t = np.linspace(0,300,100)
+vaccination_rates = np.linspace(0,0.01,20)
+
+peak_infections = []
+
+for v_rate in vaccination_rates:
+    result = odeint(sirv_model, [S0,I0,R0,V0], t, args = (beta,gamma,v_rate))
+    S,I,R,V = result.T
+
+    peak_infections.append(max(I))
+
+
+plt.figure(figsize=(10,6))
+plt.plot(vaccination_rates,peak_infections,marker='o')
+plt.xlabel('Vaccination Rate')
+plt.ylabel('Peak Number of Infected Individuals')
+plt.title('Relationship Between Vaccination Rate and Peak Infections')
 plt.grid(True)
-plt.tight_layout()
-plt.xticks(indices, month_names,rotation=45)
 plt.show()
-
-# Plot 2: ML-Predicted Outbreak Duration
-plt.figure(figsize=(10,7))
-plt.bar(indices,I,width=0.8,color='orange',edgecolor='black')
-plt.xlabel('Months')
-plt.ylabel('Number of infected individuals')
-plt.title('Monthly Infected Count - SIRV Measles Model')
-plt.grid(True,linestyle='--', alpha = 0.5)
-plt.tight_layout()
-plt.xticks(indices,month_names,rotation=45)
-plt.show()
-
-infected1 = 0
-for day,infected in zip(t,I):
-    infected1=infected1+infected
-    if infected < 1:
-        print(f"Predicted end of outbreak: Day {int(day)}")
-        break
-print(f"Total infected individuals: {int(infected1)}")
-
-
 
 
 
 ############################ Curve Fitting #################################
 
-# Plot 1: SIRV Model Graph
-plt.figure(figsize=(10, 7))
-plt.plot(indices, S, label = 'Susceptible')
-plt.plot(indices, I, label='Infected')
-plt.plot(indices, R, label='Recovered')
-plt.plot(indices, V, label='Vaccinated')
-plt.xlabel('Months')
-plt.ylabel('Number of individuals')
-plt.title('SIRV Model for Gaines County, Texas')
+
+import numpy as np
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+
+
+infected_data = np.array([6, 39, 111, 178, 80])
+time = np.arange(len(infected_data)) # Time in months: [0, 1, 2, 3, 4]
+
+# Total population
+N = 23289
+
+# Initial conditions
+I0 = infected_data[0]
+R0 = 0
+#V0 = 0.82*N
+S0 = N - I0 - R0
+
+# Define the SIR model simulation (Euler method)
+def sir_model(t, beta, gamma):
+    S = S0
+    I = I0
+    R = R0
+    I_list = []
+
+    for _ in t:
+        new_infected = beta * S * I / N
+        new_recovered = gamma * I
+
+        S -= new_infected
+        I += new_infected - new_recovered
+        R += new_recovered
+
+        I_list.append(I)
+
+    return np.array(I_list)
+
+# Initial guesses for beta and gamma
+initial_guess = [0.2, 0.1] # [beta, gamma]
+
+# Fit the model to data using non-linear least squares
+popt, pcov = curve_fit(sir_model, time, infected_data, p0=initial_guess, bounds=(0, [1.0, 1.0]))
+
+# Extract fitted parameters
+beta_fit, gamma_fit = popt
+print(f"Estimated β (transmission rate): {beta_fit:.4f}")
+print(f"Estimated γ (recovery rate): {gamma_fit:.4f}")
+print(f"Estimated R₀ (basic reproduction number): {beta_fit / gamma_fit:.2f}")
+
+# Plot actual vs fitted infected counts
+fitted_infected = sir_model(time, beta_fit, gamma_fit)
+plt.plot(time, infected_data, 'ro', label='Actual Infected')
+plt.plot(time, fitted_infected, 'b-', label='Fitted SIR Curve')
+plt.xlabel('Month')
+plt.ylabel('Infected Individuals')
+plt.title('SIR Model Curve Fitting')
 plt.legend()
 plt.grid(True)
-plt.tight_layout()
-plt.xticks(indices, month_names,rotation=45)
 plt.show()
-
-# Plot 2: ML-Predicted Outbreak Duration
-plt.figure(figsize=(10,7))
-plt.bar(indices,I,width=0.8,color='orange',edgecolor='black')
-plt.xlabel('Months')
-plt.ylabel('Number of infected individuals')
-plt.title('Monthly Infected Count - SIRV Measles Model')
-plt.grid(True,linestyle='--', alpha = 0.5)
-plt.tight_layout()
-plt.xticks(indices,month_names,rotation=45)
-plt.show()
-
-infected1 = 0
-for day,infected in zip(t,I):
-    infected1=infected1+infected
-    if infected < 1:
-        print(f"Predicted end of outbreak: Day {int(day)}")
-        break
-print(f"Total infected individuals: {int(infected1)}")
-
 
 
 ############################ Autism vs Measles ####################################
 
-# Plot 1: SIRV Model Graph
-plt.figure(figsize=(10, 7))
-plt.plot(indices, S, label = 'Susceptible')
-plt.plot(indices, I, label='Infected')
-plt.plot(indices, R, label='Recovered')
-plt.plot(indices, V, label='Vaccinated')
-plt.xlabel('Months')
-plt.ylabel('Number of individuals')
-plt.title('SIRV Model for Gaines County, Texas')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.xticks(indices, month_names,rotation=45)
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+import seaborn as sns
+
+# Example synthetic dataset (replace with your real data)
+data = {
+'Year': [2020, 2021, 2022, 2023, 2024],
+'MMR_Vaccination_Rate': [95.2, 94, 93.5, 92.9, 92.7], # in %
+'Autism_Rate': [27.6, 27, 32.2, 30, 30] # per 1,000 children
+}
+
+df = pd.DataFrame(data)
+
+# Plot
+sns.set(style="whitegrid")
+plt.figure(figsize=(8, 6))
+sns.regplot(x='MMR_Vaccination_Rate', y='Autism_Rate', data=df)
+plt.title('MMR Vaccination Rate vs Autism Rate')
+plt.xlabel('MMR Vaccination Rate (%)')
+plt.ylabel('Autism Rate per 1,000 children')
 plt.show()
 
-# Plot 2: ML-Predicted Outbreak Duration
-plt.figure(figsize=(10,7))
-plt.bar(indices,I,width=0.8,color='orange',edgecolor='black')
-plt.xlabel('Months')
-plt.ylabel('Number of infected individuals')
-plt.title('Monthly Infected Count - SIRV Measles Model')
-plt.grid(True,linestyle='--', alpha = 0.5)
-plt.tight_layout()
-plt.xticks(indices,month_names,rotation=45)
-plt.show()
+# Pearson Correlation
+correlation, p_value = pearsonr(df['MMR_Vaccination_Rate'], df['Autism_Rate'])
+print(f'Correlation coefficient: {correlation:.3f}')
+print(f'P-value: {p_value:.5f}')
 
-infected1 = 0
-for day,infected in zip(t,I):
-    infected1=infected1+infected
-    if infected < 1:
-        print(f"Predicted end of outbreak: Day {int(day)}")
-        break
-print(f"Total infected individuals: {int(infected1)}")
+# Interpretation
+if p_value < 0.05:
+    print("There is a statistically significant correlation.")
+else:
+    print("No statistically significant correlation found.")
 
