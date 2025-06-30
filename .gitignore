@@ -70,3 +70,122 @@ for day,infected in zip(t,I):
         break
 print(f"Total infected individuals: {int(infected1)}")
 
+
+
+
+
+
+################## Infected vs Vaccination Rate ##########################
+
+# Plot 1: SIRV Model Graph
+plt.figure(figsize=(10, 7))
+plt.plot(indices, S, label = 'Susceptible')
+plt.plot(indices, I, label='Infected')
+plt.plot(indices, R, label='Recovered')
+plt.plot(indices, V, label='Vaccinated')
+plt.xlabel('Months')
+plt.ylabel('Number of individuals')
+plt.title('SIRV Model for Gaines County, Texas')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.xticks(indices, month_names,rotation=45)
+plt.show()
+
+# Plot 2: ML-Predicted Outbreak Duration
+plt.figure(figsize=(10,7))
+plt.bar(indices,I,width=0.8,color='orange',edgecolor='black')
+plt.xlabel('Months')
+plt.ylabel('Number of infected individuals')
+plt.title('Monthly Infected Count - SIRV Measles Model')
+plt.grid(True,linestyle='--', alpha = 0.5)
+plt.tight_layout()
+plt.xticks(indices,month_names,rotation=45)
+plt.show()
+
+infected1 = 0
+for day,infected in zip(t,I):
+    infected1=infected1+infected
+    if infected < 1:
+        print(f"Predicted end of outbreak: Day {int(day)}")
+        break
+print(f"Total infected individuals: {int(infected1)}")
+
+
+
+
+
+############################ Curve Fitting #################################
+
+# Plot 1: SIRV Model Graph
+plt.figure(figsize=(10, 7))
+plt.plot(indices, S, label = 'Susceptible')
+plt.plot(indices, I, label='Infected')
+plt.plot(indices, R, label='Recovered')
+plt.plot(indices, V, label='Vaccinated')
+plt.xlabel('Months')
+plt.ylabel('Number of individuals')
+plt.title('SIRV Model for Gaines County, Texas')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.xticks(indices, month_names,rotation=45)
+plt.show()
+
+# Plot 2: ML-Predicted Outbreak Duration
+plt.figure(figsize=(10,7))
+plt.bar(indices,I,width=0.8,color='orange',edgecolor='black')
+plt.xlabel('Months')
+plt.ylabel('Number of infected individuals')
+plt.title('Monthly Infected Count - SIRV Measles Model')
+plt.grid(True,linestyle='--', alpha = 0.5)
+plt.tight_layout()
+plt.xticks(indices,month_names,rotation=45)
+plt.show()
+
+infected1 = 0
+for day,infected in zip(t,I):
+    infected1=infected1+infected
+    if infected < 1:
+        print(f"Predicted end of outbreak: Day {int(day)}")
+        break
+print(f"Total infected individuals: {int(infected1)}")
+
+
+
+############################ Autism vs Measles ####################################
+
+# Plot 1: SIRV Model Graph
+plt.figure(figsize=(10, 7))
+plt.plot(indices, S, label = 'Susceptible')
+plt.plot(indices, I, label='Infected')
+plt.plot(indices, R, label='Recovered')
+plt.plot(indices, V, label='Vaccinated')
+plt.xlabel('Months')
+plt.ylabel('Number of individuals')
+plt.title('SIRV Model for Gaines County, Texas')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.xticks(indices, month_names,rotation=45)
+plt.show()
+
+# Plot 2: ML-Predicted Outbreak Duration
+plt.figure(figsize=(10,7))
+plt.bar(indices,I,width=0.8,color='orange',edgecolor='black')
+plt.xlabel('Months')
+plt.ylabel('Number of infected individuals')
+plt.title('Monthly Infected Count - SIRV Measles Model')
+plt.grid(True,linestyle='--', alpha = 0.5)
+plt.tight_layout()
+plt.xticks(indices,month_names,rotation=45)
+plt.show()
+
+infected1 = 0
+for day,infected in zip(t,I):
+    infected1=infected1+infected
+    if infected < 1:
+        print(f"Predicted end of outbreak: Day {int(day)}")
+        break
+print(f"Total infected individuals: {int(infected1)}")
+
