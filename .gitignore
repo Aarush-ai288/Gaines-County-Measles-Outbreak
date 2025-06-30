@@ -1,207 +1,72 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[codz]
-*$py.class
+############## Main SIRV Model ################
 
-# C extensions
-*.so
+import numpy as np
+from scipy.integrate import odeint
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor
+import os
+from datetime import datetime, timedelta
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+def sirv_model(y, t, beta, gamma, nu):
+    S, I, R, V = y
+    N = S + I + R + V
+    dSdt = -beta * S * I / N - nu * S
+    dIdt = beta * S * I / N - gamma * I
+    dRdt = gamma * I
+    dVdt = nu * S
+    return [dSdt, dIdt, dRdt, dVdt]
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+N = 23289 # population
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+I0 = 6 #Initial infected
+R0 = 0 #Initial recovered
+V0 = int(0.82*N) #Change vaccination proportion as needed
+S0 = N - I0 - R0 - V0 #Susceptible
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py.cover
-.hypothesis/
-.pytest_cache/
-cover/
+beta = 1.0 # Infection rate
+gamma = 0.1266 # Recovery rate
+v_rate = 0.000
 
-# Translations
-*.mo
-*.pot
+t = np.linspace(0,300,10) #300 days, 10 intervals
+result = odeint(sirv_model,[S0,I0,R0,V0], t, args=(beta,gamma,v_rate))
+S,I,R,V = result.T
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+start_date = datetime(2025,1,1)
+month_names = [(start_date + timedelta(days=int(day))).strftime('%b')for day in t]
+indices = np.arange(len(t))
 
-# Flask stuff:
-instance/
-.webassets-cache
+# Plot 1: SIRV Model Graph
+plt.figure(figsize=(10, 7))
+plt.plot(indices, S, label = 'Susceptible')
+plt.plot(indices, I, label='Infected')
+plt.plot(indices, R, label='Recovered')
+plt.plot(indices, V, label='Vaccinated')
+plt.xlabel('Months')
+plt.ylabel('Number of individuals')
+plt.title('SIRV Model for Gaines County, Texas')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.xticks(indices, month_names,rotation=45)
+plt.show()
 
-# Scrapy stuff:
-.scrapy
+# Plot 2: ML-Predicted Outbreak Duration
+plt.figure(figsize=(10,7))
+plt.bar(indices,I,width=0.8,color='orange',edgecolor='black')
+plt.xlabel('Months')
+plt.ylabel('Number of infected individuals')
+plt.title('Monthly Infected Count - SIRV Measles Model')
+plt.grid(True,linestyle='--', alpha = 0.5)
+plt.tight_layout()
+plt.xticks(indices,month_names,rotation=45)
+plt.show()
 
-# Sphinx documentation
-docs/_build/
+infected1 = 0
+for day,infected in zip(t,I):
+    infected1=infected1+infected
+    if infected < 1:
+        print(f"Predicted end of outbreak: Day {int(day)}")
+        break
+print(f"Total infected individuals: {int(infected1)}")
 
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-#poetry.toml
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
-#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
-#pdm.lock
-#pdm.toml
-.pdm-python
-.pdm-build/
-
-# pixi
-#   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
-#pixi.lock
-#   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
-#   in the .venv directory. It is recommended not to include this directory in version control.
-.pixi
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.envrc
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
-
-# Abstra
-# Abstra is an AI-powered process automation framework.
-# Ignore directories containing user credentials, local state, and settings.
-# Learn more at https://abstra.io/docs
-.abstra/
-
-# Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
-#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
-#  you could uncomment the following to ignore the entire vscode folder
-# .vscode/
-
-# Ruff stuff:
-.ruff_cache/
-
-# PyPI configuration file
-.pypirc
-
-# Cursor
-#  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
-#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
-#  refer to https://docs.cursor.com/context/ignore-files
-.cursorignore
-.cursorindexingignore
-
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
